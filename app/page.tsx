@@ -40,6 +40,9 @@ export default function Home() {
   const [logged, setLogged] = useState(false);
   const [password, setPassword] = useState("");
   const [status, setStatus] = useState("");
+  const [menuName, setMenuName] = useState("");
+  const [menuDesc, setMenuDesc] = useState("");
+  const [menuImage, setMenuImage] = useState("");
 
   useEffect(() => {
     const saved = localStorage.getItem("ciao-gallery");
@@ -73,6 +76,21 @@ export default function Home() {
       reader.onload = () => setGallery(prev => [...prev, { id: crypto.randomUUID(), src: String(reader.result), alt: file.name }]);
       reader.readAsDataURL(file);
     });
+  }
+
+  function addMenuImage(file: File | undefined) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => setMenuImage(String(reader.result));
+    reader.readAsDataURL(file);
+  }
+
+  function addMenuItem() {
+    if (!menuName.trim()) return;
+    setMenu(prev => [...prev, { id: crypto.randomUUID(), name: menuName.trim(), desc: menuDesc.trim() || "Nowa pozycja menu", image: menuImage || undefined }]);
+    setMenuName("");
+    setMenuDesc("");
+    setMenuImage("");
   }
 
   return (
@@ -115,7 +133,7 @@ export default function Home() {
 
       <section id="galeria" className={styles.gallerySection}>
         <div className={styles.sectionHead}><div><p className={styles.kickerDark}>ZOBACZ NA WŁASNE OCZY</p><h2>Galeria <em>CIAO!</em></h2></div><span>kliknij zdjęcie, aby powiększyć</span></div>
-        <div className={styles.galleryGrid}>{gallery.map((item, i) => <button className={styles.galleryCard + " " + (i % 4 === 0 ? styles.tall : "")} key={item.id} onClick={() => setActiveIndex(i)}><img src={item.src} alt={item.alt} /><span>↗</span></button>)}</div>
+        <div className={styles.galleryGrid}>{gallery.map((item, i) => <button className={styles.galleryCard + " " + (i % 4 === 0 ? styles.tall : "")} key={item.id} onClick={() => setActiveIndex(i)}><img src={item.src} alt={item.alt} /><span>↗</span><div className={styles.galleryCaption}>{item.alt}</div></button>)}</div>
       </section>
 
       <section id="opinie" className={styles.reviews}>
@@ -140,7 +158,7 @@ export default function Home() {
       {panel && <div className={styles.modalBackdrop} onClick={() => setPanel(false)}><div className={styles.ownerPanel} onClick={e => e.stopPropagation()}>
         <button className={styles.close} onClick={() => setPanel(false)}>×</button>
         {!logged ? <div><p className={styles.kickerDark}>STREFA WŁAŚCICIELA</p><h2>Panel <em>CIAO!</em></h2><p className={styles.panelHint}>Demo lokalne. Docelowo podłączymy trwały storage, np. Supabase.</p><label>Hasło<input type="password" value={password} onChange={e => setPassword(e.target.value)} onKeyDown={e => e.key === "Enter" && login()} /></label>{status && <p className={styles.error}>{status}</p>}<button className={styles.primaryDark} onClick={login}>Zaloguj się</button><small>Hasło demonstracyjne: CIAO2026</small></div> :
-        <div><p className={styles.kickerDark}>STREFA WŁAŚCICIELA</p><h2>Zarządzaj <em>stroną.</em></h2><div className={styles.ownerTabs}><button className={styles.ownerTab + (ownerTab === "gallery" ? " " + styles.ownerTabActive : "")} onClick={() => setOwnerTab("gallery")}>Galeria</button><button className={styles.ownerTab + (ownerTab === "menu" ? " " + styles.ownerTabActive : "")} onClick={() => setOwnerTab("menu")}>Menu</button></div>{ownerTab === "gallery" ? <div><label className={styles.upload}>+ Dodaj zdjęcia<input type="file" accept="image/*" multiple onChange={e => addPhotos(e.target.files)} /></label><div className={styles.adminGrid}>{gallery.map(item => <div key={item.id}><img src={item.src} alt="" /><button onClick={() => setGallery(gallery.filter(x => x.id !== item.id))}>Usuń</button></div>)}</div></div> : <div><label className={styles.upload}>+ Dodaj zdjęcie do menu<input type="file" accept="image/*" multiple onChange={e => { if (!e.target.files) return; Array.from(e.target.files).slice(0, 8).forEach(file => { const reader = new FileReader(); reader.onload = () => setMenu(prev => [...prev, { id: crypto.randomUUID(), name: file.name.replace(/\\.[^.]+$/, ""), desc: "Nowa pozycja menu", image: String(reader.result) }]); reader.readAsDataURL(file); }); }} /></label><div className={styles.menuAdminList}>{menu.map(item => <div className={styles.menuAdminItem} key={item.id}>{item.image ? <img src={item.image} alt="" /> : <div /> }<div><h3>{item.name}</h3><p>{item.desc}</p></div><button onClick={() => setMenu(menu.filter(x => x.id !== item.id))}>Usuń</button></div>)}</div></div>}</div>}
+        <div><p className={styles.kickerDark}>STREFA WŁAŚCICIELA</p><h2>Zarządzaj <em>stroną.</em></h2><div className={styles.ownerTabs}><button className={styles.ownerTab + (ownerTab === "gallery" ? " " + styles.ownerTabActive : "")} onClick={() => setOwnerTab("gallery")}>Galeria</button><button className={styles.ownerTab + (ownerTab === "menu" ? " " + styles.ownerTabActive : "")} onClick={() => setOwnerTab("menu")}>Menu</button></div>{ownerTab === "gallery" ? <div><label className={styles.upload}>+ Dodaj zdjęcia<input type="file" accept="image/*" multiple onChange={e => addPhotos(e.target.files)} /></label><div className={styles.adminGrid}>{gallery.map(item => <div key={item.id}><img src={item.src} alt="" /><button onClick={() => setGallery(gallery.filter(x => x.id !== item.id))}>Usuń</button></div>)}</div></div> : <div><div className={styles.menuAdminForm}><input value={menuName} onChange={e => setMenuName(e.target.value)} placeholder="Nazwa pizzy / pozycji" /><textarea value={menuDesc} onChange={e => setMenuDesc(e.target.value)} placeholder="Opis pizzy..." /><label className={styles.upload}>+ Wybierz zdjęcie<input type="file" accept="image/*" onChange={e => addMenuImage(e.target.files?.[0])} /></label>{menuImage && <img className={styles.menuFormPreview} src={menuImage} alt="" />}<button onClick={addMenuItem}>Dodaj do menu</button></div><div className={styles.menuAdminList}>{menu.map(item => <div className={styles.menuAdminItem} key={item.id}>{item.image ? <img src={item.image} alt="" /> : <div /> }<div><h3>{item.name}</h3><p>{item.desc}</p></div><button onClick={() => setMenu(menu.filter(x => x.id !== item.id))}>Usuń</button></div>)}</div></div>}</div>}
       </div></div>}
     </main>
   );
