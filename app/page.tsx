@@ -56,7 +56,7 @@ export default function Home() {
   }
 
   return (
-    <main>
+    <main className={styles.pageRoot}>
       <nav className={styles.nav}>
         <a className={styles.brand} href="#top">CIAO<span>!</span></a>
         <div className={styles.navLinks}>
