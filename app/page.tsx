@@ -20,7 +20,8 @@ const reviews = [
 
 export default function Home() {
   const [gallery, setGallery] = useState<GalleryItem[]>(starterGallery);
-  const [active, setActive] = useState<GalleryItem | null>(null);
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const active = activeIndex === null ? null : gallery[activeIndex] ?? null;
   const [panel, setPanel] = useState(false);
   const [logged, setLogged] = useState(false);
   const [password, setPassword] = useState("");
@@ -103,7 +104,7 @@ export default function Home() {
 
       <section id="galeria" className={styles.gallerySection}>
         <div className={styles.sectionHead}><div><p className={styles.kickerDark}>ZOBACZ NA WŁASNE OCZY</p><h2>Galeria <em>CIAO!</em></h2></div><span>kliknij zdjęcie, aby powiększyć</span></div>
-        <div className={styles.galleryGrid}>{gallery.map((item, i) => <button className={styles.galleryCard + " " + (i % 4 === 0 ? styles.tall : "")} key={item.id} onClick={() => setActive(item)}><img src={item.src} alt={item.alt} /><span>↗</span></button>)}</div>
+        <div className={styles.galleryGrid}>{gallery.map((item, i) => <button className={styles.galleryCard + " " + (i % 4 === 0 ? styles.tall : "")} key={item.id} onClick={() => setActiveIndex(i)}><img src={item.src} alt={item.alt} /><span>↗</span></button>)}</div>
       </section>
 
       <section id="opinie" className={styles.reviews}>
@@ -118,7 +119,12 @@ export default function Home() {
 
       <footer className={styles.footer}><div className={styles.brand}>CIAO<span>!</span></div><p>Pizza z ogniem. Wrocław, Karczemna 1b.</p><div><a href="https://m.facebook.com" target="_blank" rel="noreferrer">Facebook</a><button onClick={() => {setPanel(true); setLogged(false); setPassword("");}}>Panel właściciela</button></div></footer>
 
-      {active && <div className={styles.lightbox} role="dialog" aria-modal="true" onClick={() => setActive(null)}><button aria-label="Zamknij" onClick={() => setActive(null)}>×</button><img src={active.src} alt={active.alt} onClick={e => e.stopPropagation()} /></div>}
+      {active && <div className={styles.lightbox} role="dialog" aria-modal="true" onClick={() => setActiveIndex(null)}>
+        <button className={styles.lightboxClose} aria-label="Zamknij" onClick={() => setActiveIndex(null)}>×</button>
+        <button className={styles.lightboxPrev} aria-label="Poprzednie zdjęcie" onClick={e => { e.stopPropagation(); setActiveIndex(i => i === null ? null : (i - 1 + gallery.length) % gallery.length); }}>‹</button>
+        <img src={active.src} alt={active.alt} onClick={e => e.stopPropagation()} />
+        <button className={styles.lightboxNext} aria-label="Następne zdjęcie" onClick={e => { e.stopPropagation(); setActiveIndex(i => i === null ? null : (i + 1) % gallery.length); }}>›</button>
+      </div>}
 
       {panel && <div className={styles.modalBackdrop} onClick={() => setPanel(false)}><div className={styles.ownerPanel} onClick={e => e.stopPropagation()}>
         <button className={styles.close} onClick={() => setPanel(false)}>×</button>
